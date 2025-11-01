@@ -41,11 +41,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.panpanweather_niki.R
 import com.example.panpanweather_niki.ui.model.WeatherModel
@@ -55,15 +53,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-
 @Composable
 fun MainView(
     modifier: Modifier = Modifier,
     viewModel: ViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var city by remember { mutableStateOf("") }
-
+    var searchQuery by remember { mutableStateOf("") }
 
     Box(modifier = modifier.fillMaxSize()) {
         Image(
@@ -86,13 +82,13 @@ fun MainView(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
-                    value = city,
-                    onValueChange = { city = it },
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Enter city name...", color = Color.White.copy(alpha = 0.6f)) },
                     leadingIcon = {
                         Icon(
-                            Icons.Default.Search,
+                            imageVector = Icons.Default.Search,
                             contentDescription = "",
                             tint = Color.White
                         )
@@ -109,8 +105,8 @@ fun MainView(
 
                 Button(
                     onClick = {
-                        if (city.isNotBlank()) {
-                            viewModel.fetchWeather(city)
+                        if (searchQuery.isNotBlank()) {
+                            viewModel.fetchWeather(searchQuery)
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -124,10 +120,7 @@ fun MainView(
                         tint = Color.White,
                         modifier = Modifier.size(15.dp)
                     )
-                    Text(
-                        "Search",
-                        color = Color.White
-                    )
+                    Text("Search", color = Color.White)
                 }
             }
 
@@ -154,17 +147,23 @@ fun MainView(
                         )
                     }
                 }
+
                 is UiState.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         CircularProgressIndicator(color = Color.White)
                     }
                 }
+
                 is UiState.Success -> {
                     WeatherDetails(
                         weather = state.weather,
                         viewModel = viewModel
                     )
                 }
+
                 is UiState.Error -> {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -201,10 +200,10 @@ fun WeatherDetails(
     weather: WeatherModel,
     viewModel: ViewModel
 ) {
-    val weatherDetails by viewModel.weatherDetails.collectAsState(initial = emptyList())
-    val weatherConditionIcon by viewModel.weatherConditionIcon.collectAsState()
-    LazyColumn (
+    val detailItems by viewModel.weatherDetails.collectAsState(initial = emptyList())
+    val conditionIconUrl by viewModel.weatherConditionIcon.collectAsState()
 
+    LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -213,7 +212,7 @@ fun WeatherDetails(
                 Icon(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = "",
-                    tint = Color.White,
+                    tint = Color.White
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
@@ -228,6 +227,7 @@ fun WeatherDetails(
 
             val date = Date(weather.dateTime * 1000L)
             val dateFormat = SimpleDateFormat("MMMM dd", Locale.getDefault())
+
             Text(
                 text = dateFormat.format(date),
                 color = Color.White,
@@ -246,21 +246,21 @@ fun WeatherDetails(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
-            ){
+            ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
-                ){
+                ) {
                     Icon(
-                        painter = rememberAsyncImagePainter(model = weatherConditionIcon),
+                        painter = rememberAsyncImagePainter(model = conditionIconUrl),
                         contentDescription = "",
                         modifier = Modifier.size(80.dp),
-                        tint =
-                            when (weather.weatherCondition) {
-                                "Clear" -> Color(0xFFDB7555)
-                                else -> Color.White
-                            }
+                        tint = when (weather.weatherCondition) {
+                            "Clear" -> Color(0xFFDB7555)
+                            else -> Color.White
+                        }
                     )
+
                     Text(
                         text = weather.weatherCondition,
                         color = Color.White,
@@ -275,6 +275,7 @@ fun WeatherDetails(
                         fontWeight = FontWeight.Bold
                     )
                 }
+
                 Image(
                     painter = painterResource(
                         when (weather.weatherCondition) {
@@ -285,29 +286,31 @@ fun WeatherDetails(
                         }
                     ),
                     contentDescription = "",
-                    modifier = Modifier.size(150.dp),
+                    modifier = Modifier.size(150.dp)
                 )
             }
 
             Spacer(modifier = Modifier.height(200.dp))
 
+            val columns = 3
+            val rows = detailItems.size / columns
+
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
+                columns = GridCells.Fixed(columns),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height((weatherDetails.size + 3 / 3 - 1) / 3 * 130.dp)
+                    .height(rows * 130.dp)
             ) {
-                items(weatherDetails) {
+                items(detailItems) { item ->
                     WeatherStatsCard(
-                        label = it.first,
-                        value = it.second,
-                        iconRes = it.third
+                        label = item.first,
+                        value = item.second,
+                        iconRes = item.third
                     )
                 }
             }
-
 
             Row(
                 modifier = Modifier
@@ -329,5 +332,3 @@ fun WeatherDetails(
         }
     }
 }
-
-
