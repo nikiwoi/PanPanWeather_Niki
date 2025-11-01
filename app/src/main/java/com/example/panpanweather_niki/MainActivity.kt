@@ -11,37 +11,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.panpanweather_niki.data.container.AppContainer
 import com.example.panpanweather_niki.ui.theme.PanPanWeather_NikiTheme
+import com.example.panpanweather_niki.ui.view.MainView
+import com.example.panpanweather_niki.ui.viewmodel.ViewModel
 
 class MainActivity : ComponentActivity() {
+
+    private val appContainer = AppContainer()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             PanPanWeather_NikiTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                val viewModel = ViewModel(appContainer.weatherRepository)
+                MainView(
+                    modifier = Modifier.padding(),
+                    viewModel = viewModel
+                )
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PanPanWeather_NikiTheme {
-        Greeting("Android")
     }
 }
