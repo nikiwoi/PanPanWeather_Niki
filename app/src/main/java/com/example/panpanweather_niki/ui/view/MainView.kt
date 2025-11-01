@@ -212,7 +212,7 @@ fun WeatherDetails(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Location Icon",
+                    contentDescription = "",
                     tint = Color.White,
                 )
                 Spacer(modifier = Modifier.width(4.dp))
@@ -253,7 +253,7 @@ fun WeatherDetails(
                 ){
                     Icon(
                         painter = rememberAsyncImagePainter(model = weatherConditionIcon),
-                        contentDescription = "${weather.weatherCondition} icon",
+                        contentDescription = "",
                         modifier = Modifier.size(80.dp),
                         tint =
                             when (weather.weatherCondition) {
@@ -284,7 +284,7 @@ fun WeatherDetails(
                             else -> 0
                         }
                     ),
-                    contentDescription = "Weather Illustration",
+                    contentDescription = "",
                     modifier = Modifier.size(150.dp),
                 )
             }
